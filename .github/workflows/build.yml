@@ -28,7 +28,11 @@ jobs:
 
       - name: Smoke test on real Paper 1.18.2
         run: |
+          mkdir -p /tmp/build-logs
+          set -o pipefail
+          {
           set -e
+          set -x
           mkdir -p /tmp/server/plugins
           cp target/MiniGamesTG-*.jar /tmp/server/plugins/
           cd /tmp/server
@@ -38,7 +42,8 @@ jobs:
           echo "Downloading Paper 1.18.2 build $BUILD"
           curl -fsSL -o paper.jar "https://api.papermc.io/v2/projects/paper/versions/1.18.2/builds/${BUILD}/downloads/paper-1.18.2-${BUILD}.jar"
           (sleep 75; printf 'stop\n') | timeout 300 java -Xmx1G -jar paper.jar nogui > server.log 2>&1 || true
-          cp server.log /tmp/build-logs/server.log || true
+          cp server.log /tmp/build-logs/server.log
+          set +x
           echo "===== server.log (tail) ====="
           tail -n 40 server.log
           grep -q "Done" server.log || { echo "FAIL: сервер не запустился"; exit 1; }
@@ -52,6 +57,7 @@ jobs:
             exit 1
           fi
           echo "SMOKE TEST OK: плагин загрузился на Paper 1.18.2 без ошибок"
+          } 2>&1 | tee /tmp/build-logs/smoke.log
 
       - name: Upload jar as workflow artifact
         uses: actions/upload-artifact@v4
