@@ -298,7 +298,7 @@ public class GameManager {
 
         // Краткий анонс в чат и консоль.
         GameResult winner = results.isEmpty() ? null : results.get(0);
-        String summary = buildSummary(game, results);
+        List<String> summary = buildSummary(game, results);
         for (UUID uuid : game.getPlayers()) {
             Player p = Bukkit.getPlayer(uuid);
             if (p != null) {
