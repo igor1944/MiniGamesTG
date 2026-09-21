@@ -231,8 +231,8 @@ public class TelegramBotService {
     private void handleStart(long chatId, String chatType, String firstName, String username) {
         if (!"private".equals(chatType)) {
             sendMessage(chatId, "\uD83D\uDC4B Привет! Я бот сервера MiniGamesTG.\n"
-                    "Чтобы привязать аккаунт, напишите мне в личные сообщения: /start\n"
-                    "ID этого чата (для report-chat-id): <code>" + chatId + "</code>");
+                    + "Чтобы привязать аккаунт, напишите мне в личные сообщения: /start\n"
+                    + "ID этого чата (для report-chat-id): <code>" + chatId + "</code>");
             return;
         }
         PlayerRecord record = plugin.getStats().findByChatId(chatId);
