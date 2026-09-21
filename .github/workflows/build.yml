@@ -37,10 +37,13 @@ jobs:
           cp target/MiniGamesTG-*.jar /tmp/server/plugins/
           cd /tmp/server
           echo "eula=true" > eula.txt
-          BUILD=$(curl -fsSL "https://api.papermc.io/v2/projects/paper/versions/1.18.2" \
-            | python3 -c "import json,sys; print(json.load(sys.stdin)['builds'][-1])")
-          echo "Downloading Paper 1.18.2 build $BUILD"
-          curl -fsSL -o paper.jar "https://api.papermc.io/v2/projects/paper/versions/1.18.2/builds/${BUILD}/downloads/paper-1.18.2-${BUILD}.jar"
+          BUILD=$(curl -fsSL "https://fill.papermc.io/v3/projects/paper/versions/1.18.2" \
+            | python3 -c "import json,sys; print(json.load(sys.stdin)['builds'][0])")
+          echo "Latest Paper 1.18.2 build: $BUILD"
+          URL=$(curl -fsSL "https://fill.papermc.io/v3/projects/paper/versions/1.18.2/builds/${BUILD}" \
+            | python3 -c "import json,sys; print(json.load(sys.stdin)['downloads']['server:default']['url'])")
+          echo "Downloading: $URL"
+          curl -fsSL -o paper.jar "$URL"
           (sleep 75; printf 'stop\n') | timeout 300 java -Xmx1G -jar paper.jar nogui > server.log 2>&1 || true
           cp server.log /tmp/build-logs/server.log
           set +x
