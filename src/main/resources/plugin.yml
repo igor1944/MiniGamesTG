@@ -3,7 +3,7 @@ version: 1.0.0
 main: me.igor1944.minigamestg.MiniGamesTGPlugin
 api-version: '1.18'
 author: igor1944
-description: Мини-игры с Telegram-ботом: результаты игр, личная статистика игроков и периодический топ.
+description: "Мини-игры с Telegram-ботом: результаты игр, личная статистика игроков и периодический топ."
 website: https://github.com/igor1944/MiniGamesTG
 
 commands:
