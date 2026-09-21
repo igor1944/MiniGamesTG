@@ -21,7 +21,10 @@ jobs:
           cache: maven
 
       - name: Build with Maven
-        run: mvn -B -DskipTests package
+        run: |
+          mkdir -p /tmp/build-logs
+          set -o pipefail
+          mvn -B -DskipTests package 2>&1 | tee /tmp/build-logs/mvn.log
 
       - name: Smoke test on real Paper 1.18.2
         run: |
@@ -35,6 +38,7 @@ jobs:
           echo "Downloading Paper 1.18.2 build $BUILD"
           curl -fsSL -o paper.jar "https://api.papermc.io/v2/projects/paper/versions/1.18.2/builds/${BUILD}/downloads/paper-1.18.2-${BUILD}.jar"
           (sleep 75; printf 'stop\n') | timeout 300 java -Xmx1G -jar paper.jar nogui > server.log 2>&1 || true
+          cp server.log /tmp/build-logs/server.log || true
           echo "===== server.log (tail) ====="
           tail -n 40 server.log
           grep -q "Done" server.log || { echo "FAIL: сервер не запустился"; exit 1; }
@@ -71,3 +75,20 @@ jobs:
           git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
           git push -f origin builds
           echo "Builds branch updated"
+
+      - name: Publish logs to ci-logs branch on failure
+        if: failure()
+        run: |
+          set -e
+          rm -rf /tmp/ci-logs-out && mkdir -p /tmp/ci-logs-out
+          cp /tmp/build-logs/*.log /tmp/ci-logs-out/ 2>/dev/null || echo "no logs captured" > /tmp/ci-logs-out/empty.txt
+          tail -n 300 /tmp/build-logs/mvn.log > /tmp/ci-logs-out/mvn-tail.txt 2>/dev/null || true
+          cd /tmp/ci-logs-out
+          git init -q -b ci-logs .
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "CI logs for run ${{ github.run_id }} (commit ${{ github.sha }})"
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          git push -f origin ci-logs
+          echo "Logs published to ci-logs branch"
