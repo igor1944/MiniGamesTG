@@ -1,6 +1,6 @@
 # MiniGamesTG
 
-сылка(https://github.com/igor1944/MiniGamesTG/tree/arena/01a0c29e-minigamestg)
+[сылка](https://github.com/igor1944/MiniGamesTG/tree/arena/01a0c29e-minigamestg)
 
 Плагин для **Paper 1.18.2** (Java 17): мини-игры для игроков сервера с интеграцией **Telegram-бота** —
 результаты игр приходят игрокам в личные сообщения, игроки следят за своей статистикой,
