@@ -1,0 +1,62 @@
++ mkdir -p /tmp/server/plugins
++ cp target/MiniGamesTG-1.0.0.jar /tmp/server/plugins/
++ cd /tmp/server
++ echo eula=true
+++ curl -fsSL https://fill.papermc.io/v3/projects/paper/versions/1.18.2
+++ python3 -c 'import json,sys; print(json.load(sys.stdin)['\''builds'\''][0])'
++ BUILD=388
++ echo 'Latest Paper 1.18.2 build: 388'
+Latest Paper 1.18.2 build: 388
+++ curl -fsSL https://fill.papermc.io/v3/projects/paper/versions/1.18.2/builds/388
+++ python3 -c 'import json,sys; print(json.load(sys.stdin)['\''downloads'\'']['\''server:default'\'']['\''url'\''])'
++ URL=https://fill-data.papermc.io/v1/objects/0578f18f4d632b494b468ec56b3b414b5b56fea087ee7d39cf6dcdf4c9d01f05/paper-1.18.2-388.jar
++ echo 'Downloading: https://fill-data.papermc.io/v1/objects/0578f18f4d632b494b468ec56b3b414b5b56fea087ee7d39cf6dcdf4c9d01f05/paper-1.18.2-388.jar'
+Downloading: https://fill-data.papermc.io/v1/objects/0578f18f4d632b494b468ec56b3b414b5b56fea087ee7d39cf6dcdf4c9d01f05/paper-1.18.2-388.jar
++ curl -fsSL -o paper.jar https://fill-data.papermc.io/v1/objects/0578f18f4d632b494b468ec56b3b414b5b56fea087ee7d39cf6dcdf4c9d01f05/paper-1.18.2-388.jar
++ sleep 75
++ timeout 300 java -Xmx1G -jar paper.jar nogui
++ printf 'stop\n'
++ cp server.log /tmp/build-logs/server.log
++ set +x
+===== server.log (tail) =====
+	at org.yaml.snakeyaml.composer.Composer.composeScalarNode(Composer.java:214) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.composer.Composer.composeNode(Composer.java:184) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.composer.Composer.composeValueNode(Composer.java:314) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.composer.Composer.composeMappingChildren(Composer.java:305) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.composer.Composer.composeMappingNode(Composer.java:286) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.composer.Composer.composeNode(Composer.java:188) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.composer.Composer.getNode(Composer.java:115) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.composer.Composer.getSingleNode(Composer.java:142) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.constructor.BaseConstructor.getSingleData(BaseConstructor.java:151) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.Yaml.loadFromReader(Yaml.java:491) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.Yaml.load(Yaml.java:429) ~[snakeyaml-1.30.jar:?]
+	at org.bukkit.plugin.PluginDescriptionFile.<init>(PluginDescriptionFile.java:259) ~[paper-api-1.18.2-R0.1-SNAPSHOT.jar:?]
+	at org.bukkit.plugin.java.JavaPluginLoader.getPluginDescription(JavaPluginLoader.java:183) ~[paper-api-1.18.2-R0.1-SNAPSHOT.jar:?]
+	... 6 more
+[06:54:45 INFO]: Preparing level "world"
+[06:54:51 INFO]: Preparing start region for dimension minecraft:overworld
+[06:54:52 INFO]: Preparing spawn area: 0%
+[06:54:52 INFO]: Time elapsed: 277 ms
+[06:54:52 INFO]: Preparing start region for dimension minecraft:the_nether
+[06:54:52 INFO]: Time elapsed: 527 ms
+[06:54:52 INFO]: Preparing start region for dimension minecraft:the_end
+[06:54:52 INFO]: Time elapsed: 260 ms
+[06:54:53 INFO]: Running delayed init tasks
+[06:54:53 INFO]: Done (8.079s)! For help, type "help"
+[06:54:53 INFO]: Timings Reset
+[06:55:51 INFO]: Stopping the server
+[06:55:51 INFO]: Stopping server
+[06:55:51 INFO]: Saving players
+[06:55:51 INFO]: Saving worlds
+[06:55:51 INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[06:55:53 INFO]: Saving chunks for level 'ServerLevel[world_nether]'/minecraft:the_nether
+[06:55:53 INFO]: Saving chunks for level 'ServerLevel[world_the_end]'/minecraft:the_end
+[06:55:53 INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[06:55:53 INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[06:55:53 INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[06:55:53 INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[06:55:54 INFO]: Flushing Chunk IO
+2026-09-21 06:55:54,627 Log4j2-AsyncAppenderEventDispatcher-1-Async WARN Advanced terminal features are not available in this environment
+[06:55:54 INFO]: Closing Thread Pool
+[06:55:54 INFO]: Closing Server
+FAIL: плагин не включился

@@ -1,0 +1,86 @@
+Downloading mojang_1.18.2.jar
+Applying patches
+Starting org.bukkit.craftbukkit.Main
+*** Warning, you've not updated in a while! ***
+*** Please download a new build as per instructions from https://papermc.io/downloads ***
+System Info: Java 17 (OpenJDK 64-Bit Server VM 17.0.20.1+1) Host: Linux 6.17.0-1022-azure (amd64)
+Loading libraries, please wait...
+2026-09-21 06:54:39,009 ServerMain WARN Advanced terminal features are not available in this environment
+[06:54:42 ERROR]: Failed to load properties from file: server.properties
+[06:54:42 INFO]: Environment: authHost='https://authserver.mojang.com', accountsHost='https://api.mojang.com', sessionHost='https://sessionserver.mojang.com', servicesHost='https://api.minecraftservices.com', name='PROD'
+[06:54:42 INFO]: Found new data pack file/bukkit, loading it automatically
+[06:54:43 INFO]: Loaded 7 recipes
+[06:54:44 INFO]: Starting minecraft server version 1.18.2
+[06:54:44 INFO]: Loading properties
+[06:54:45 INFO]: This server is running Paper version git-Paper-388 (MC: 1.18.2) (Implementing API version 1.18.2-R0.1-SNAPSHOT) (Git: fc9ee65 on ver/1.18.2)
+[06:54:45 INFO]: Server Ping Player Sample Count: 12
+[06:54:45 INFO]: Using 4 threads for Netty based IO
+[06:54:45 INFO]: Default game type: SURVIVAL
+[06:54:45 INFO]: Generating keypair
+[06:54:45 INFO]: Starting Minecraft server on *:25565
+[06:54:45 INFO]: Using epoll channel type
+[06:54:45 INFO]: Paper: Using libdeflate (Linux x86_64) compression from Velocity.
+[06:54:45 INFO]: Paper: Using Java cipher from Velocity.
+[06:54:45 ERROR]: Could not load 'plugins/MiniGamesTG-1.0.0.jar' in folder 'plugins'
+org.bukkit.plugin.InvalidDescriptionException: Invalid plugin.yml
+	at org.bukkit.plugin.java.JavaPluginLoader.getPluginDescription(JavaPluginLoader.java:188) ~[paper-api-1.18.2-R0.1-SNAPSHOT.jar:?]
+	at org.bukkit.plugin.SimplePluginManager.loadPlugins(SimplePluginManager.java:159) ~[paper-api-1.18.2-R0.1-SNAPSHOT.jar:?]
+	at org.bukkit.craftbukkit.v1_18_R2.CraftServer.loadPlugins(CraftServer.java:418) ~[paper-1.18.2.jar:git-Paper-388]
+	at net.minecraft.server.dedicated.DedicatedServer.initServer(DedicatedServer.java:288) ~[paper-1.18.2.jar:git-Paper-388]
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:1164) ~[paper-1.18.2.jar:git-Paper-388]
+	at net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:316) ~[paper-1.18.2.jar:git-Paper-388]
+	at java.lang.Thread.run(Thread.java:840) ~[?:?]
+Caused by: org.yaml.snakeyaml.scanner.ScannerException: mapping values are not allowed here
+ in 'reader', line 6, column 40:
+     ... tion: Мини-игры с Telegram-ботом: результаты игр, личная статист ... 
+                                         ^
+
+	at org.yaml.snakeyaml.scanner.ScannerImpl.fetchValue(ScannerImpl.java:910) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.scanner.ScannerImpl.fetchMoreTokens(ScannerImpl.java:400) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.scanner.ScannerImpl.checkToken(ScannerImpl.java:251) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.parser.ParserImpl$ParseBlockMappingKey.produce(ParserImpl.java:628) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.parser.ParserImpl.peekEvent(ParserImpl.java:166) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.comments.CommentEventsCollector$1.peek(CommentEventsCollector.java:59) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.comments.CommentEventsCollector$1.peek(CommentEventsCollector.java:45) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.comments.CommentEventsCollector.collectEvents(CommentEventsCollector.java:140) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.comments.CommentEventsCollector.collectEvents(CommentEventsCollector.java:119) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.composer.Composer.composeScalarNode(Composer.java:214) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.composer.Composer.composeNode(Composer.java:184) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.composer.Composer.composeValueNode(Composer.java:314) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.composer.Composer.composeMappingChildren(Composer.java:305) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.composer.Composer.composeMappingNode(Composer.java:286) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.composer.Composer.composeNode(Composer.java:188) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.composer.Composer.getNode(Composer.java:115) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.composer.Composer.getSingleNode(Composer.java:142) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.constructor.BaseConstructor.getSingleData(BaseConstructor.java:151) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.Yaml.loadFromReader(Yaml.java:491) ~[snakeyaml-1.30.jar:?]
+	at org.yaml.snakeyaml.Yaml.load(Yaml.java:429) ~[snakeyaml-1.30.jar:?]
+	at org.bukkit.plugin.PluginDescriptionFile.<init>(PluginDescriptionFile.java:259) ~[paper-api-1.18.2-R0.1-SNAPSHOT.jar:?]
+	at org.bukkit.plugin.java.JavaPluginLoader.getPluginDescription(JavaPluginLoader.java:183) ~[paper-api-1.18.2-R0.1-SNAPSHOT.jar:?]
+	... 6 more
+[06:54:45 INFO]: Preparing level "world"
+[06:54:51 INFO]: Preparing start region for dimension minecraft:overworld
+[06:54:52 INFO]: Preparing spawn area: 0%
+[06:54:52 INFO]: Time elapsed: 277 ms
+[06:54:52 INFO]: Preparing start region for dimension minecraft:the_nether
+[06:54:52 INFO]: Time elapsed: 527 ms
+[06:54:52 INFO]: Preparing start region for dimension minecraft:the_end
+[06:54:52 INFO]: Time elapsed: 260 ms
+[06:54:53 INFO]: Running delayed init tasks
+[06:54:53 INFO]: Done (8.079s)! For help, type "help"
+[06:54:53 INFO]: Timings Reset
+[06:55:51 INFO]: Stopping the server
+[06:55:51 INFO]: Stopping server
+[06:55:51 INFO]: Saving players
+[06:55:51 INFO]: Saving worlds
+[06:55:51 INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[06:55:53 INFO]: Saving chunks for level 'ServerLevel[world_nether]'/minecraft:the_nether
+[06:55:53 INFO]: Saving chunks for level 'ServerLevel[world_the_end]'/minecraft:the_end
+[06:55:53 INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[06:55:53 INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[06:55:53 INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[06:55:53 INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[06:55:54 INFO]: Flushing Chunk IO
+2026-09-21 06:55:54,627 Log4j2-AsyncAppenderEventDispatcher-1-Async WARN Advanced terminal features are not available in this environment
+[06:55:54 INFO]: Closing Thread Pool
+[06:55:54 INFO]: Closing Server
