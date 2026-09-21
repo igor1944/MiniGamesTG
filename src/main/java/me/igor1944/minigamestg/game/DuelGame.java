@@ -34,7 +34,11 @@ public class DuelGame extends Game {
 
     @Override
     public void onStart(MiniGamesTGPlugin plugin, GameManager manager) {
-        int countdown = Math.max(0, plugin.getConfig().getInt("game.duel-countdown-seconds", 3));
+        // Телепортируем бойцов на арену (или сводим друг к другу) до отсчёта.
+        manager.teleportDuelists(this);
+
+        int countdown = Math.max(0, plugin.getConfig().getInt("game.duel.countdown-seconds",
+                plugin.getConfig().getInt("game.duel-countdown-seconds", 3)));
 
         // Подготавливаем бойцов: полное здоровье и сытость.
         for (java.util.UUID uuid : getPlayers()) {

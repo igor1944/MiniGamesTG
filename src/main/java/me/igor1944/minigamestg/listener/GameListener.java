@@ -9,6 +9,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
 /**
  * Маршрутизирует игровые события сервера в GameManager:
@@ -42,5 +43,13 @@ public class GameListener implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         // Обновляем ник в статистике (на случай смены имени).
         games.getPlugin().getStats().touchPlayer(event.getPlayer());
+        // Возвращаем на исходную позицию, если игрок вышел посреди дуэли.
+        games.handleJoinReturn(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onRespawn(PlayerRespawnEvent event) {
+        // Проигравший дуэль возрождается на своей исходной позиции.
+        games.handleRespawn(event);
     }
 }

@@ -1,5 +1,6 @@
 package me.igor1944.minigamestg;
 
+import me.igor1944.minigamestg.arena.ArenaManager;
 import me.igor1944.minigamestg.command.MgCommand;
 import me.igor1944.minigamestg.game.GameManager;
 import me.igor1944.minigamestg.listener.GameListener;
@@ -19,6 +20,7 @@ public class MiniGamesTGPlugin extends JavaPlugin {
 
     private StatsManager statsManager;
     private GameManager gameManager;
+    private ArenaManager arenaManager;
     private TelegramBotService telegramBot;
     private BukkitTask statsBroadcastTask;
     private BukkitTask autoSaveTask;
@@ -30,6 +32,9 @@ public class MiniGamesTGPlugin extends JavaPlugin {
 
         statsManager = new StatsManager(this);
         statsManager.load();
+
+        arenaManager = new ArenaManager(this);
+        arenaManager.load();
 
         gameManager = new GameManager(this);
         gameManager.startCleanupTask();
@@ -75,6 +80,9 @@ public class MiniGamesTGPlugin extends JavaPlugin {
     public void reloadPlugin() {
         reloadConfig();
         Msg.setPrefix(getConfig().getString("messages.prefix", "&8[&bMiniGamesTG&8] "));
+        if (arenaManager != null) {
+            arenaManager.load();
+        }
         startTelegram();
         scheduleTasks();
     }
@@ -127,6 +135,10 @@ public class MiniGamesTGPlugin extends JavaPlugin {
 
     public GameManager getGames() {
         return gameManager;
+    }
+
+    public ArenaManager getArenas() {
+        return arenaManager;
     }
 
     public TelegramBotService getTelegram() {

@@ -3,17 +3,23 @@ package me.igor1944.minigamestg.game;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import me.igor1944.minigamestg.MiniGamesTGPlugin;
+import me.igor1944.minigamestg.arena.Arena;
 import me.igor1944.minigamestg.stats.GameResult;
 import me.igor1944.minigamestg.util.Msg;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Vector;
 
 /**
  * Управляет всеми мини-играми: создание, лобби, старт,
@@ -25,6 +31,13 @@ public class GameManager {
     private final Map<Integer, Game> games = new LinkedHashMap<>();
     private int nextId = 1;
     private BukkitTask cleanupTask;
+
+    /**
+     * Куда вернуть игроков после дуэли (UUID -> исходная позиция).
+     * Заполняется при телепортации на арену / сведении игроков,
+     * очищается при возврате (сразу, при респавне или при повторном входе).
+     */
+    private final Map<UUID, Location> returnLocations = new HashMap<>();
 
     public GameManager(MiniGamesTGPlugin plugin) {
         this.plugin = plugin;
@@ -199,6 +212,7 @@ public class GameManager {
         game.setState(GameState.CANCELLED);
         game.onCleanup();
         games.remove(game.getId());
+        returnPlayersHome(game);
         broadcastToGame(game, Msg.prefixed("&7" + reason + " &8(«" + game.getDisplayName() + "»)"));
     }
 
@@ -329,6 +343,9 @@ public class GameManager {
             }
         }
 
+        // Возвращаем дуэлянтов на исходные позиции (мёртвые — на респавне).
+        returnPlayersHome(game);
+
         // Уведомления в Telegram.
         if (plugin.getTelegram() != null) {
             plugin.getTelegram().notifyGameFinished(game, results);
@@ -361,6 +378,121 @@ public class GameManager {
         lines.add(Msg.color("&7Очки: &f+3 &7за победу, &f+1 &7за участие. Статистика: &f/mg stats"));
         lines.add(Msg.color("&8&m-----------------------------------"));
         return lines;
+    }
+
+    // ---------- телепортация (дуэли) ----------
+
+    /**
+     * Дуэль: сводит бойцов вместе. Приоритет — случайная подготовленная арена
+     * (/mg arena ...); если арен нет и включено game.duel.teleport-players-together —
+     * телепортирует второго игрока на вычисленную точку перед первым.
+     * Исходные позиции запоминаются для возврата после боя.
+     */
+    public void teleportDuelists(Game game) {
+        List<UUID> ids = new ArrayList<>(game.getPlayers());
+        if (ids.size() < 2) {
+            return;
+        }
+        Player a = Bukkit.getPlayer(ids.get(0));
+        Player b = Bukkit.getPlayer(ids.get(1));
+        if (a == null || b == null) {
+            return;
+        }
+        Arena arena = plugin.getArenas().getRandomComplete();
+        if (arena != null) {
+            saveReturnLocation(a);
+            saveReturnLocation(b);
+            a.teleport(arena.getPos1());
+            b.teleport(arena.getPos2());
+            broadcastToGame(game, Msg.prefixed("&7Дуэлянты телепортированы на арену &f" + arena.getName() + "&7."));
+            return;
+        }
+        if (!plugin.getConfig().getBoolean("game.duel.teleport-players-together", true)) {
+            return; // телепортация отключена — дерутся, где стоят
+        }
+        saveReturnLocation(b);
+        Location spot = computeFacingSpot(a.getLocation(), 5.0);
+        b.teleport(spot);
+        broadcastToGame(game, Msg.prefixed("&7Игроки сведены друг к другу. После боя вас вернёт назад."));
+    }
+
+    private void saveReturnLocation(Player p) {
+        returnLocations.putIfAbsent(p.getUniqueId(), p.getLocation().clone());
+    }
+
+    /**
+     * Точка в `distance` блоках по направлению взгляда, с безопасной высотой
+     * (по поверхности, если перепад небольшой) и взглядом назад на игрока.
+     */
+    private Location computeFacingSpot(Location base, double distance) {
+        Vector dir = base.getDirection().clone();
+        dir.setY(0);
+        if (dir.lengthSquared() < 1.0E-4) {
+            dir = new Vector(1, 0, 0);
+        }
+        dir.normalize().multiply(distance);
+        Location target = base.clone().add(dir);
+        World world = base.getWorld();
+        if (world != null) {
+            int groundY = world.getHighestBlockYAt(target.getBlockX(), target.getBlockZ()) + 1;
+            if (Math.abs(groundY - base.getY()) <= 8) {
+                target.setY(groundY);
+            }
+        }
+        target.setPitch(0f);
+        double dx = base.getX() - target.getX();
+        double dz = base.getZ() - target.getZ();
+        target.setYaw((float) Math.toDegrees(Math.atan2(-dx, dz)));
+        return target;
+    }
+
+    /** Возвращает участников игры на сохранённые позиции (см. teleportDuelists). */
+    private void returnPlayersHome(Game game) {
+        if (returnLocations.isEmpty()) {
+            return;
+        }
+        if (!plugin.getConfig().getBoolean("game.duel.teleport-back-after", true)) {
+            returnLocations.keySet().removeAll(game.getPlayers());
+            return;
+        }
+        for (UUID uuid : game.getPlayers()) {
+            Location loc = returnLocations.get(uuid);
+            if (loc == null) {
+                continue;
+            }
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null && p.isOnline()) {
+                if (p.isDead()) {
+                    continue; // вернём через PlayerRespawnEvent
+                }
+                p.teleport(loc);
+                p.sendMessage(Msg.prefixed("&7Вы возвращены на своё место."));
+                returnLocations.remove(uuid);
+            }
+            // оффлайн-игроков вернём при следующем входе (handleJoinReturn)
+        }
+    }
+
+    /** Проигравший дуэль возрождается там, где был до боя. */
+    public void handleRespawn(PlayerRespawnEvent event) {
+        Location loc = returnLocations.remove(event.getPlayer().getUniqueId());
+        if (loc != null) {
+            event.setRespawnLocation(loc);
+        }
+    }
+
+    /** Игрок, вышедший с сервера посреди дуэли, возвращается на своё место при входе. */
+    public void handleJoinReturn(Player player) {
+        Location loc = returnLocations.remove(player.getUniqueId());
+        if (loc == null) {
+            return;
+        }
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (player.isOnline()) {
+                player.teleport(loc);
+                player.sendMessage(Msg.prefixed("&7Вы возвращены на место, где были до дуэли."));
+            }
+        }, 10L);
     }
 
     // ---------- события из слушателя ----------

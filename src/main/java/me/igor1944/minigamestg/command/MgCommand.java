@@ -28,7 +28,7 @@ public class MgCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = Arrays.asList(
             "create", "join", "leave", "start", "end", "cancel", "list",
-            "stats", "top", "tg", "reload", "help");
+            "stats", "top", "tg", "arena", "tphere", "reload", "help");
 
     private final MiniGamesTGPlugin plugin;
 
@@ -78,6 +78,11 @@ public class MgCommand implements CommandExecutor, TabCompleter {
             case "telegram":
             case "link":
                 return handleTelegram(player, args);
+            case "arena":
+                return handleArena(player, args);
+            case "tphere":
+            case "tpall":
+                return handleTpHere(player);
             case "help":
             default:
                 sendHelp(sender);
@@ -324,6 +329,117 @@ public class MgCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    /** Управление дуэльными аренами (только для админов). */
+    private boolean handleArena(Player player, String[] args) {
+        if (!player.hasPermission("minigamestg.admin")) {
+            player.sendMessage(Msg.prefixed("&cАренами управляет только администратор (&fminigamestg.admin&c)."));
+            return true;
+        }
+        if (args.length < 2) {
+            player.sendMessage(Msg.prefixed("&cИспользование: &f/mg arena <create|set|delete|list>"));
+            return true;
+        }
+        String action = args[1].toLowerCase(Locale.ROOT);
+        switch (action) {
+            case "create":
+                if (args.length < 3) {
+                    player.sendMessage(Msg.prefixed("&cУкажите имя: &f/mg arena create <имя>"));
+                    return true;
+                }
+                if (plugin.getArenas().create(args[2])) {
+                    player.sendMessage(Msg.prefixed("&aАрена &f" + args[2] + " &aсоздана. Теперь задайте "
+                            + "точки спавна: встаньте на позицию и выполните &f/mg arena set " + args[2] + " 1&a и &f2"));
+                } else {
+                    player.sendMessage(Msg.prefixed("&cАрена с именем &f" + args[2] + " &cуже существует."));
+                }
+                return true;
+            case "set":
+                if (args.length < 4) {
+                    player.sendMessage(Msg.prefixed("&cИспользование: &f/mg arena set <имя> <1|2> &7(встаньте на точку)"));
+                    return true;
+                }
+                int index;
+                try {
+                    index = Integer.parseInt(args[3]);
+                } catch (NumberFormatException e) {
+                    player.sendMessage(Msg.prefixed("&cТочка должна быть &f1 &cили &f2&c."));
+                    return true;
+                }
+                if (plugin.getArenas().get(args[2]) == null) {
+                    player.sendMessage(Msg.prefixed("&cАрена &f" + args[2] + " &cне найдена. Создайте: &f/mg arena create " + args[2]));
+                    return true;
+                }
+                if (plugin.getArenas().setSpawn(args[2], index, player.getLocation())) {
+                    player.sendMessage(Msg.prefixed("&aТочка &f" + index + " &aарены &f" + plugin.getArenas().get(args[2]).getName()
+                            + " &aсохранена (текущая позиция, включая направление взгляда)."));
+                } else {
+                    player.sendMessage(Msg.prefixed("&cТочка должна быть &f1 &cили &f2&c."));
+                }
+                return true;
+            case "delete":
+            case "remove":
+                if (args.length < 3) {
+                    player.sendMessage(Msg.prefixed("&cУкажите имя: &f/mg arena delete <имя>"));
+                    return true;
+                }
+                if (plugin.getArenas().delete(args[2])) {
+                    player.sendMessage(Msg.prefixed("&aАрена &f" + args[2] + " &aудалена."));
+                } else {
+                    player.sendMessage(Msg.prefixed("&cАрена &f" + args[2] + " &cне найдена."));
+                }
+                return true;
+            case "list":
+                List<me.igor1944.minigamestg.arena.Arena> arenas = plugin.getArenas().getAll();
+                if (arenas.isEmpty()) {
+                    player.sendMessage(Msg.prefixed("&7Арен пока нет. Создайте: &f/mg arena create <имя>"));
+                    return true;
+                }
+                player.sendMessage(Msg.color("&8&m-----&r &bДуэльные арены &8&m-----"));
+                for (me.igor1944.minigamestg.arena.Arena arena : arenas) {
+                    String status = arena.isComplete() ? "&aготова" : "&eне настроена (нужны точки 1 и 2)";
+                    player.sendMessage(Msg.color("&f" + arena.getName() + " &8– " + status));
+                }
+                return true;
+            default:
+                player.sendMessage(Msg.prefixed("&cНеизвестное действие: &f" + action
+                        + "&c. Доступно: create, set, delete, list"));
+                return true;
+        }
+    }
+
+    /** Телепортирует всех участников игры к её создателю (сбор на кастомную игру). */
+    private boolean handleTpHere(Player player) {
+        Game game = plugin.getGames().getGameOf(player.getUniqueId());
+        if (game == null) {
+            player.sendMessage(Msg.prefixed("&cВы не находитесь в игре."));
+            return true;
+        }
+        boolean isCreator = game.getCreator().equals(player.getUniqueId());
+        if (!isCreator && !player.hasPermission("minigamestg.admin")) {
+            player.sendMessage(Msg.prefixed("&cСобирать игроков может только создатель игры или администратор."));
+            return true;
+        }
+        if (game.getState() == me.igor1944.minigamestg.game.GameState.RUNNING
+                && game.getType() != GameType.CUSTOM) {
+            player.sendMessage(Msg.prefixed("&cНельзя телепортировать участников во время дуэли или «Реакции»."));
+            return true;
+        }
+        int moved = 0;
+        for (java.util.UUID uuid : game.getPlayers()) {
+            if (uuid.equals(player.getUniqueId())) {
+                continue;
+            }
+            Player target = Bukkit.getPlayer(uuid);
+            if (target != null) {
+                target.teleport(player.getLocation());
+                target.sendMessage(Msg.prefixed("&7Вы телепортированы к организатору игры &f" + player.getName() + "&7."));
+                moved++;
+            }
+        }
+        player.sendMessage(Msg.prefixed("&aТелепортировано участников: &f" + moved));
+        return true;
+    }
+
     private boolean handleReload(CommandSender sender) {
         if (!sender.hasPermission("minigamestg.admin")) {
             sender.sendMessage(Msg.prefixed("&cНет прав (&fminigamestg.admin&c)."));
@@ -346,7 +462,9 @@ public class MgCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Msg.color("&f/mg stats [ник] &8– &7статистика игрока"));
         sender.sendMessage(Msg.color("&f/mg top [тип] &8– &7топ-10 игроков"));
         sender.sendMessage(Msg.color("&f/mg tg <код|off> &8– &7привязка Telegram"));
+        sender.sendMessage(Msg.color("&f/mg tphere &8– &7стянуть участников игры к себе"));
         if (sender.hasPermission("minigamestg.admin")) {
+            sender.sendMessage(Msg.color("&f/mg arena <create|set|delete|list> &8– &7дуэльные арены"));
             sender.sendMessage(Msg.color("&f/mg reload &8– &7перезагрузить конфиг"));
         }
     }
@@ -399,6 +517,22 @@ public class MgCommand implements CommandExecutor, TabCompleter {
             case "tg":
                 if (args.length == 2) {
                     return filter(Collections.singletonList("off"), args[1]);
+                }
+                return Collections.emptyList();
+            case "arena":
+                if (args.length == 2) {
+                    return filter(Arrays.asList("create", "set", "delete", "list"), args[1]);
+                }
+                if (args.length == 3 && (args[1].equalsIgnoreCase("set")
+                        || args[1].equalsIgnoreCase("delete") || args[1].equalsIgnoreCase("remove"))) {
+                    List<String> names = new ArrayList<>();
+                    for (me.igor1944.minigamestg.arena.Arena a : plugin.getArenas().getAll()) {
+                        names.add(a.getName());
+                    }
+                    return filter(names, args[2]);
+                }
+                if (args.length == 4 && args[1].equalsIgnoreCase("set")) {
+                    return filter(Arrays.asList("1", "2"), args[3]);
                 }
                 return Collections.emptyList();
             default:
